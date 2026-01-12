@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import api from "../utils/api";
+import { toast } from "react-toastify";
 
 const Dashboard = () => {
   const [resumes, setResumes] = useState([]);
@@ -13,50 +13,44 @@ const Dashboard = () => {
 
   const fetchResumes = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/resume', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Clean API call without hardcoded localhost
+      const response = await api.get("/resume");
       setResumes(response.data);
     } catch (error) {
-      toast.error('Error fetching resumes');
+      toast.error("Error fetching resumes");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this resume?')) {
+    if (window.confirm("Are you sure you want to delete this resume?")) {
       try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:5000/api/resume/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast.success('Resume deleted successfully');
+        await api.delete(`/resume/${id}`);
+        toast.success("Resume deleted successfully");
         fetchResumes();
       } catch (error) {
-        toast.error('Error deleting resume');
+        toast.error("Error deleting resume");
       }
     }
   };
 
   const handleDownload = async (id, title) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/resume/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
+      // Must set responseType to 'blob' for file downloads
+      const response = await api.get(`/resume/${id}/pdf`, {
+        responseType: "blob",
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `${title}.pdf`);
+      link.setAttribute("download", `${title}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (error) {
-      toast.error('Error downloading resume');
+      toast.error("Error downloading resume");
     }
   };
 
@@ -83,7 +77,9 @@ const Dashboard = () => {
       {resumes.length === 0 ? (
         <div className="text-center py-12">
           <h3 className="mt-2 text-sm font-medium text-gray-900">No resumes</h3>
-          <p className="mt-1 text-sm text-gray-500">Get started by creating a new resume.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Get started by creating a new resume.
+          </p>
           <div className="mt-6">
             <Link
               to="/resume/new"
@@ -101,9 +97,12 @@ const Dashboard = () => {
               className="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200"
             >
               <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">{resume.title}</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  {resume.title}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
+                  Last updated:{" "}
+                  {new Date(resume.updatedAt).toLocaleDateString()}
                 </p>
               </div>
               <div className="px-4 py-4 sm:px-6">
@@ -136,4 +135,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
